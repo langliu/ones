@@ -1,6 +1,15 @@
 {
-  "name": "@ones/auth",
-  "type": "module",
+  "dependencies": {
+    "@ones/db": "workspace:*",
+    "@ones/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@ones/config": "workspace:*",
+    "typescript": "catalog:"
+  },
   "exports": {
     ".": {
       "default": "./src/index.ts"
@@ -9,16 +18,7 @@
       "default": "./src/*.ts"
     }
   },
+  "name": "@ones/auth",
   "scripts": {},
-  "devDependencies": {
-    "typescript": "catalog:",
-    "@ones/config": "workspace:*"
-  },
-  "dependencies": {
-    "better-auth": "catalog:",
-    "dotenv": "catalog:",
-    "zod": "catalog:",
-    "@ones/env": "workspace:*",
-    "@ones/db": "workspace:*"
-  }
+  "type": "module"
 }
