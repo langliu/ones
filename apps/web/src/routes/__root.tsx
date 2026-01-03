@@ -1,13 +1,20 @@
 import type { QueryClient } from '@tanstack/react-query'
 
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
+import {
+  createRootRouteWithContext,
+  HeadContent,
+  Outlet,
+  Scripts,
+  useLocation,
+} from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { Toaster } from '@/components/ui/sonner'
 import type { orpc } from '@/utils/orpc'
 
 import Header from '../components/header'
 import appCss from '../index.css?url'
+
 export interface RouterAppContext {
   orpc: typeof orpc
   queryClient: QueryClient
@@ -38,6 +45,9 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 })
 
 function RootDocument() {
+  const location = useLocation()
+  const isDashboard = location.pathname.startsWith('/dashboard')
+
   return (
     <html className='dark' lang='en'>
       <head>
@@ -45,7 +55,7 @@ function RootDocument() {
       </head>
       <body>
         <div className='grid h-svh grid-rows-[auto_1fr]'>
-          <Header />
+          {!isDashboard && <Header />}
           <Outlet />
         </div>
         <Toaster richColors />

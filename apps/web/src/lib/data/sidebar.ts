@@ -5,6 +5,7 @@ export type SidebarFooterItemId = 'settings' | 'templates' | 'help'
 export type NavItem = {
   id: NavItemId
   label: string
+  to?: string
   badge?: number
   isActive?: boolean
 }
@@ -22,11 +23,11 @@ export type SidebarFooterItem = {
 }
 
 export const navItems: NavItem[] = [
-  { badge: 24, id: 'inbox', label: '收件箱' },
-  { id: 'my-tasks', label: '我的任务' },
-  { id: 'projects', isActive: true, label: '项目' },
-  { id: 'clients', label: '客户' },
-  { id: 'performance', label: '性能' },
+  { badge: 24, id: 'inbox', label: '收件箱', to: '/inbox' },
+  { id: 'my-tasks', label: '我的任务', to: '/todos' },
+  { id: 'projects', label: '项目', to: '/dashboard/projects' },
+  { id: 'clients', label: '客户', to: '/dashboard/clients' },
+  { id: 'performance', label: '性能', to: '/dashboard' },
 ]
 
 export const activeProjects: ActiveProjectSummary[] = [

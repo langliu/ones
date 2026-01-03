@@ -7,12 +7,14 @@ import {
   MagnifyingGlassMinus,
   MagnifyingGlassPlus,
 } from '@phosphor-icons/react/dist/ssr'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import {
   addDays,
   addWeeks,
   differenceInCalendarDays,
   format,
   isSameDay,
+  parseISO,
   startOfWeek,
   subWeeks,
 } from 'date-fns'
@@ -25,6 +27,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input'
 import { projects as initialProjects, type Project } from '@/lib/data/projects'
 import { cn } from '@/lib/utils'
+import type { ProjectsSearch } from '@/routes/dashboard.projects'
 
 // Fixed "today" so the demo stays visually consistent over time.
 const FIXED_TODAY = new Date(2024, 0, 23)
@@ -34,6 +37,9 @@ interface ProjectTimelineProps {
 }
 
 export function ProjectTimeline({ projects: propProjects }: ProjectTimelineProps) {
+  const navigate = useNavigate()
+  const searchParams = useSearch({ from: '/dashboard/projects' })
+
   const [projects, setProjects] = useState(propProjects || initialProjects)
 
   useEffect(() => {
@@ -43,8 +49,15 @@ export function ProjectTimeline({ projects: propProjects }: ProjectTimelineProps
   }, [propProjects])
 
   const [expandedProjects, setExpandedProjects] = useState<string[]>(projects.map((p) => p.id))
-  const [viewMode, setViewMode] = useState<'Day' | 'Week' | 'Month' | 'Quarter'>('Week')
-  const [zoom, setZoom] = useState(1)
+  // URL synced state
+  const viewMode = searchParams.viewMode || 'Week'
+  const zoom = searchParams.zoom ?? 1
+  const viewStartDate = useMemo(() => {
+    return searchParams.viewStartDate
+      ? parseISO(searchParams.viewStartDate)
+      : startOfWeek(addWeeks(FIXED_TODAY, -1), { weekStartsOn: 1 })
+  }, [searchParams.viewStartDate])
+
   const [editDialog, setEditDialog] = useState<{
     isOpen: boolean
     type: 'project' | 'task' | null
@@ -54,9 +67,27 @@ export function ProjectTimeline({ projects: propProjects }: ProjectTimelineProps
   const [editStartDate, setEditStartDate] = useState('')
   const [editEndDate, setEditEndDate] = useState('')
 
-  const [viewStartDate, setViewStartDate] = useState(() =>
-    startOfWeek(addWeeks(FIXED_TODAY, -1), { weekStartsOn: 1 }),
-  )
+  const updateSearch = (newParams: Partial<ProjectsSearch>) => {
+    navigate({
+      replace: true,
+      search: (prev) => ({ ...prev, ...newParams }) as ProjectsSearch,
+      to: '/dashboard/projects',
+    })
+  }
+
+  const setViewMode = (mode: 'Day' | 'Week' | 'Month' | 'Quarter') => {
+    updateSearch({ viewMode: mode })
+  }
+
+  const setZoom = (z: number | ((prev: number) => number)) => {
+    const nextZoom = typeof z === 'function' ? z(zoom) : z
+    updateSearch({ zoom: nextZoom })
+  }
+
+  const setViewStartDate = (d: Date | ((prev: Date) => Date)) => {
+    const nextDate = typeof d === 'function' ? d(viewStartDate) : d
+    updateSearch({ viewStartDate: format(nextDate, 'yyyy-MM-dd') })
+  }
   const timelineRef = useRef<HTMLDivElement>(null)
   const shouldAutoScrollToTodayRef = useRef(true)
   const [todayOffsetDays, setTodayOffsetDays] = useState<number | null>(null)

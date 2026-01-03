@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { authClient } from '@/lib/auth-client'
 
-import { Button } from './ui/button'
+import { Button, buttonVariants } from './ui/button'
 import { Skeleton } from './ui/skeleton'
 
 export default function UserMenu() {
@@ -24,8 +24,8 @@ export default function UserMenu() {
 
   if (!session) {
     return (
-      <Link to='/login'>
-        <Button variant='outline'>Sign In</Button>
+      <Link className={buttonVariants({ variant: 'outline' })} to='/login'>
+        登录
       </Link>
     )
   }
@@ -37,7 +37,7 @@ export default function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className='bg-card'>
         <DropdownMenuGroup>
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel>我的账户</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
           <DropdownMenuItem
@@ -54,7 +54,7 @@ export default function UserMenu() {
             }}
             variant='destructive'
           >
-            Sign Out
+            退出登录
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

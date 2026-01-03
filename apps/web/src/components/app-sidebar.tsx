@@ -11,6 +11,7 @@ import {
   Tray,
   Users,
 } from '@phosphor-icons/react/dist/ssr'
+import { Link, useLocation } from '@tanstack/react-router'
 import { ProgressCircle } from '@/components/progress-circle'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
@@ -50,6 +51,8 @@ const footerItemIcons: Record<SidebarFooterItemId, React.ComponentType<{ classNa
 }
 
 export function AppSidebar() {
+  const location = useLocation()
+
   return (
     <Sidebar className='border-border/40 border-r-0 border-none shadow-none'>
       <SidebarHeader className='p-4'>
@@ -96,11 +99,14 @@ export function AppSidebar() {
             <SidebarMenu>
               {navItems.map((item) => {
                 const Icon = navItemIcons[item.id]
+                const isActive = item.to ? location.pathname === item.to : item.isActive
                 return (
                   <SidebarMenuItem key={item.label}>
                     <SidebarMenuButton
                       className='h-9 rounded-lg px-3 font-normal text-muted-foreground'
-                      isActive={item.isActive}
+                      isActive={isActive}
+                      // biome-ignore lint/suspicious/noExplicitAny: Authorized use of any to bridge generic string to router type
+                      render={item.to ? <Link search={{}} to={item.to as any} /> : undefined}
                     >
                       {Icon && <Icon className='h-[18px] w-[18px]' />}
                       <span>{item.label}</span>
@@ -125,7 +131,16 @@ export function AppSidebar() {
             <SidebarMenu>
               {activeProjects.map((project) => (
                 <SidebarMenuItem key={project.name}>
-                  <SidebarMenuButton className='group h-9 rounded-lg px-3'>
+                  <SidebarMenuButton
+                    className='group h-9 rounded-lg px-3'
+                    render={
+                      <Link
+                        className='text-blue-600 text-sm hover:underline dark:text-blue-400'
+                        search={{}}
+                        to='/dashboard/projects'
+                      />
+                    }
+                  >
                     <ProgressCircle color={project.color} progress={project.progress} size={18} />
                     <span className='flex-1 truncate text-sm'>{project.name}</span>
                     <span className='rounded p-0.5 opacity-0 hover:bg-accent group-hover:opacity-100'>

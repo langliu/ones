@@ -1,5 +1,5 @@
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 import { ProjectBoardView } from '@/components/project-board-view'
 import { ProjectCardsView } from '@/components/project-cards-view'
 import { ProjectHeader } from '@/components/project-header'
@@ -7,61 +7,60 @@ import { ProjectTimeline } from '@/components/project-timeline'
 import { computeFilterCounts, projects } from '@/lib/data/projects'
 import { chipsToParams, paramsToChips } from '@/lib/url/filters'
 import { DEFAULT_VIEW_OPTIONS, type FilterChip, type ViewOptions } from '@/lib/view-options'
+import type { ProjectsSearch } from '@/routes/dashboard.projects'
 
 export function ProjectsContent() {
   const navigate = useNavigate()
-  // 修正路由路径获取
-  const searchParams = useSearch({ from: '/projects' }) as Record<string, string>
+  const searchParams = useSearch({ from: '/dashboard/projects' })
 
-  const [viewOptions, setViewOptions] = useState<ViewOptions>(DEFAULT_VIEW_OPTIONS)
-  const [filters, setFilters] = useState<FilterChip[]>([])
+  const filters = useMemo(() => {
+    const params = new URLSearchParams()
+    if (searchParams.status) params.set('status', searchParams.status)
+    if (searchParams.priority) params.set('priority', searchParams.priority)
+    if (searchParams.tags) params.set('tags', searchParams.tags)
+    if (searchParams.members) params.set('members', searchParams.members)
+    return paramsToChips(params)
+  }, [searchParams])
 
-  const isSyncingRef = useRef(false)
-  const prevParamsRef = useRef<string>('')
+  const viewOptions = useMemo(
+    () => ({
+      ...DEFAULT_VIEW_OPTIONS,
+      ordering: searchParams.ordering || DEFAULT_VIEW_OPTIONS.ordering,
+      showClosedProjects:
+        searchParams.showClosedProjects ?? DEFAULT_VIEW_OPTIONS.showClosedProjects,
+      viewType: searchParams.viewType || DEFAULT_VIEW_OPTIONS.viewType,
+    }),
+    [searchParams],
+  )
+
+  const updateSearch = (newParams: Partial<ProjectsSearch>) => {
+    navigate({
+      replace: true,
+      search: (prev) => ({ ...prev, ...newParams }) as ProjectsSearch,
+      to: '/dashboard/projects',
+    })
+  }
 
   const removeFilter = (key: string, value: string) => {
     const next = filters.filter((f) => !(f.key === key && f.value === value))
-    setFilters(next)
-    replaceUrlFromChips(next)
+    applyFilters(next)
   }
 
   const applyFilters = (chips: FilterChip[]) => {
-    setFilters(chips)
-    replaceUrlFromChips(chips)
+    const params = chipsToParams(chips)
+    updateSearch({
+      members: params.get('members') || undefined,
+      priority: params.get('priority') || undefined,
+      status: params.get('status') || undefined,
+      tags: params.get('tags') || undefined,
+    })
   }
 
-  useEffect(() => {
-    const params = new URLSearchParams()
-    for (const [key, value] of Object.entries(searchParams)) {
-      params.set(key, value)
-    }
-    const currentParams = params.toString()
-
-    if (prevParamsRef.current === currentParams) return
-
-    if (isSyncingRef.current) {
-      isSyncingRef.current = false
-      return
-    }
-
-    prevParamsRef.current = currentParams
-    const chips = paramsToChips(params)
-    setFilters(chips)
-  }, [searchParams])
-
-  const replaceUrlFromChips = (chips: FilterChip[]) => {
-    const params = chipsToParams(chips)
-    const paramsObj: Record<string, string> = {}
-    params.forEach((value, key) => {
-      paramsObj[key] = value
-    })
-
-    isSyncingRef.current = true
-    prevParamsRef.current = params.toString()
-    navigate({
-      replace: true,
-      search: paramsObj,
-      to: '/projects',
+  const setViewOptions = (options: ViewOptions) => {
+    updateSearch({
+      ordering: options.ordering,
+      showClosedProjects: options.showClosedProjects,
+      viewType: options.viewType,
     })
   }
 
