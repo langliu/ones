@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 
 import { orpc } from '@/utils/orpc'
 
@@ -43,6 +43,20 @@ function HomeComponent() {
                   ? 'Connected'
                   : 'Disconnected'}
             </span>
+          </div>
+        </section>
+        <section className='rounded-lg border p-4'>
+          <h2 className='mb-2 font-medium'>快速导航</h2>
+          <div className='flex flex-col gap-2'>
+            <Link
+              className='text-blue-600 text-sm hover:underline dark:text-blue-400'
+              to='/projects'
+            >
+              → 项目管理仪表盘
+            </Link>
+            <Link className='text-blue-600 text-sm hover:underline dark:text-blue-400' to='/todos'>
+              → 待办事项
+            </Link>
           </div>
         </section>
       </div>
