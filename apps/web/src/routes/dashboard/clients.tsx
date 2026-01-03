@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import { z } from 'zod'
+import { Input } from '@/components/ui/input'
 import {
   Pagination,
   PaginationContent,
@@ -17,10 +19,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useDebounce } from '@/hooks/use-debounce'
+
 import { orpc } from '@/utils/orpc'
 
 const clientsSearchSchema = z.object({
   limit: z.coerce.number().min(1).optional().default(10),
+  name: z.string().optional(),
   page: z.coerce.number().min(1).optional().default(1),
 })
 
@@ -32,11 +37,28 @@ export const Route = createFileRoute('/dashboard/clients')({
 function ClientsPage() {
   const search = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
+  const [searchTerm, setSearchTerm] = useState(search.name || '')
+  const debouncedSearch = useDebounce(searchTerm, 500)
+
+  // Sync internal state with URL search param
+  useEffect(() => {
+    setSearchTerm(search.name || '')
+  }, [search.name])
+
+  // Trigger navigation when debounced search term changes
+  useEffect(() => {
+    if (debouncedSearch !== (search.name || '')) {
+      navigate({
+        search: (prev) => ({ ...prev, name: debouncedSearch || undefined, page: 1 }),
+      })
+    }
+  }, [debouncedSearch, navigate, search.name])
 
   const { data, isLoading } = useQuery(
     orpc.user.list.queryOptions({
       input: {
         limit: search.limit,
+        name: search.name,
         page: search.page,
       },
     }),
@@ -58,6 +80,14 @@ function ClientsPage() {
     <div className='flex flex-col gap-4 p-8'>
       <div className='flex items-center justify-between'>
         <h2 className='font-bold text-3xl tracking-tight'>客户</h2>
+        <div className='flex items-center gap-2'>
+          <Input
+            className='h-8 w-[150px] lg:w-[250px]'
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder='搜索客户...'
+            value={searchTerm}
+          />
+        </div>
       </div>
 
       <div className='rounded-md border'>

@@ -26,7 +26,6 @@
       "!**/.zed",
       "!**/.vscode",
       "!**/routeTree.gen.ts",
-      "!**/src-tauri",
       "!**/.nuxt",
       "!bts.jsonc",
       "!**/.expo",
@@ -35,7 +34,8 @@
       "!**/.svelte-kit",
       "!**/wrangler.jsonc",
       "!**/.source",
-      "!**/convex/_generated"
+      "!**/convex/_generated",
+      "!**/bun.lock"
     ]
   },
   "formatter": {
